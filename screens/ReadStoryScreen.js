@@ -1,21 +1,49 @@
 import React from 'react';
 import {SearchBar} from 'react-native-elements';
-import {StyleSheet, Text, View, TextInput, TouchableOpacity} from 'react-native';
+import React from 'react'
+import {StyleSheet, Text, View, FlatList} from 'react-native';
+import db from '../config'
 
 export default class ReadStoryScreen extends React.Component(){
 
     constructor(){
         super()
-        this.setState({
-            search : ''
-        })
+        this.state = {
+            allStories : [],
+            dataSource : []
+        }
     }
+
+    retrieveStories =()=>{
+        try{
+            var allStories = []
+            var stories = db.collection("stories").get()
+            .then((querySnapshot) =>{
+                querySnapshot.forEach((doc) =>{
+                    allStories.push(doc.data())
+                })
+                this.setState({allStories})
+            })
+        }
+        catch(error){
+            console.log(error)
+        }
+    }
+
+    componentDidMount(){
+        this.retrieveStories()
+    }
+
     render(){
         return(
             <View>
-                <View style = {styles.container}>
-                    <Text>Read Story</Text>
-                </View>
+                <FlatList data = {this.state.allStories}
+                renderItem = {({item}) => {
+                <View style = {styles.itemContainer}>
+                    <Text>Title : {item.title}</Text>
+                    <Text>Author : {item.author}</Text>
+                </View>}}
+                keyExtractor = {(item, index) => index.toString()}/>
                 <SearchBar
                     placeholder = "Search"
                     onChangeText = {this.updateSearch}
@@ -36,5 +64,13 @@ const styles = StyleSheet.create({
         borderWidth : 1.5,
         borderRightWidth : 0,
         fontSize : 20
+    },
+    itemContainer : {
+        height : 80,
+        width : "100%",
+        borderColor : "#00ffff",
+        borderWidth : 3,
+        justifyContent : "center",
+        alignSelf : "center"
     }
 })
